@@ -1,0 +1,9 @@
+*.zip
+clipmate.db
+__pycache__/
+.venv/
+archives/
+exploration/
+sample Clipmate data/
+*.db
+*.xml
