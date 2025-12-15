@@ -118,13 +118,13 @@
                 }
 
                 // Check for HTML
-                if (formats.includes("HTML") && clip.content_html) {
+                if (formats.includes("HTML")) {
                     return (
                         <div className="flex flex-col gap-4 h-full">
                             <div className="bg-white border shadow-sm p-4 rounded">
                                 <div className="font-semibold text-gray-600 mb-2">HTML Preview:</div>
                                 <iframe
-                                    srcDoc={clip.content_html}
+                                    src={`/api/clips/${clip.id}/content?content_type=html`}
                                     className="w-full h-64 border"
                                     title="HTML Content"
                                 />

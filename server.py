@@ -95,9 +95,13 @@ def get_clip_content(clip_id: int, content_type: str = "image"):
 def get_clip(clip_id: int):
     conn = get_db_connection()
     cursor = conn.cursor()
+    # Exclude BLOB fields (content_image, content_html) from JSON response
+    # These are served separately via /content endpoint
     cursor.execute("""
         SELECT
-            c.*,
+            c.id, c.guid, c.collid, c.title, c.creator, c.created_at, c.modified_at,
+            c.sourceurl, c.shortcut, c.locale, c.icons, c.encrypted, c.macro, c.viewtab,
+            c.content_text, c.size, c.format_list, c.source_xml,
             col.title as collection_name
         FROM clips c
         LEFT JOIN collections col ON c.collid = col.guid
