@@ -30,7 +30,8 @@
       "Bash(bd list:*)",
       "Bash(bd stats:*)",
       "Bash(git rev-parse:*)",
-      "Bash(git init:*)"
+      "Bash(git init:*)",
+      "Bash(sqlite3:*)"
     ],
     "deny": [],
     "ask": []

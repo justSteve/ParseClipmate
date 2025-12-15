@@ -5,15 +5,10 @@ import sqlite3
 import os
 from pydantic import BaseModel
 from typing import Optional
-from clipmate_parser import BlobManager
 
 app = FastAPI()
 
-# Initialize BlobManager
-BASE_DIR = r'c:/Users/steve/AppData/Roaming/Thornsoft Development/ClipMate7'
-blob_manager = BlobManager(BASE_DIR)
-
-DB_PATH = os.path.join(os.path.dirname(__file__), 'clipmate.db')
+DB_PATH = os.path.join(os.path.dirname(__file__), 'clipmate_from_xml.db')
 
 class Clip(BaseModel):
     id: int
@@ -32,55 +27,82 @@ def get_db_connection():
 def get_clips(search: str = ""):
     conn = get_db_connection()
     cursor = conn.cursor()
+
+    # Get collection names for display
+    query = """
+        SELECT
+            c.id, c.guid, c.title, c.creator, c.created_at, c.modified_at,
+            c.sourceurl, c.size, c.format_list, c.collid,
+            col.title as collection_name
+        FROM clips c
+        LEFT JOIN collections col ON c.collid = col.guid
+    """
+
     if search:
-        # Check if search is numeric for ID search
-        if search.isdigit():
-            cursor.execute("SELECT id, title, creator, url, source_archive, created_at, size, native_id FROM clips WHERE native_id = ? OR title LIKE ? OR content_text LIKE ? LIMIT 100", (int(search), f'%{search}%', f'%{search}%'))
-        else:
-            cursor.execute("SELECT id, title, creator, url, source_archive, created_at, size, native_id FROM clips WHERE title LIKE ? OR content_text LIKE ? LIMIT 100", (f'%{search}%', f'%{search}%'))
+        query += " WHERE c.title LIKE ? OR c.content_text LIKE ? OR c.creator LIKE ?"
+        query += " ORDER BY c.created_at DESC LIMIT 100"
+        cursor.execute(query, (f'%{search}%', f'%{search}%', f'%{search}%'))
     else:
-        cursor.execute("SELECT id, title, creator, url, source_archive, created_at, size, native_id FROM clips LIMIT 100")
+        query += " ORDER BY c.created_at DESC LIMIT 100"
+        cursor.execute(query)
+
     clips = [dict(row) for row in cursor.fetchall()]
     conn.close()
     return clips
 
 @app.get("/api/clips/{clip_id}/content")
-def get_clip_content(clip_id: int):
+def get_clip_content(clip_id: int, content_type: str = "image"):
+    """
+    Serve clip content (images, HTML, etc.) from BLOB columns
+    content_type: 'image' for content_image, 'html' for content_html
+    """
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT native_id, size FROM clips WHERE id = ?", (clip_id,))
+
+    if content_type == "image":
+        cursor.execute("SELECT content_image, format_list FROM clips WHERE id = ?", (clip_id,))
+    elif content_type == "html":
+        cursor.execute("SELECT content_html, format_list FROM clips WHERE id = ?", (clip_id,))
+    else:
+        cursor.execute("SELECT content_image, format_list FROM clips WHERE id = ?", (clip_id,))
+
     row = cursor.fetchone()
     conn.close()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail="Clip not found")
-        
-    native_id = row['native_id']
-    size = row['size']
-    
-    if not native_id or not size:
+
+    content = row[0]
+    format_list = row[1] or ""
+
+    if not content:
         raise HTTPException(status_code=404, detail="No content available")
-        
-    result = blob_manager.get_blob(native_id, size)
-    if not result:
-        raise HTTPException(status_code=404, detail="Blob not found")
-        
-    data, filename = result
-    
-    # Determine MIME type
+
+    # Determine MIME type from format_list
     media_type = "application/octet-stream"
-    if "png" in filename:
+    if "PNG" in format_list:
         media_type = "image/png"
-    elif "JPG" in filename:
+    elif "JPG" in format_list or "JPEG" in format_list:
         media_type = "image/jpeg"
-        
-    return Response(content=data, media_type=media_type)
+    elif "HTML" in format_list:
+        media_type = "text/html"
+    elif "RTF" in format_list:
+        media_type = "application/rtf"
+
+    return Response(content=content, media_type=media_type)
 
 @app.get("/api/clips/{clip_id}")
 def get_clip(clip_id: int):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM clips WHERE id = ?", (clip_id,))
+    cursor.execute("""
+        SELECT
+            c.*,
+            col.title as collection_name
+        FROM clips c
+        LEFT JOIN collections col ON c.collid = col.guid
+        WHERE c.id = ?
+    """, (clip_id,))
     row = cursor.fetchone()
     conn.close()
     if row is None:
