@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Response, Depends, Header
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 import sqlite3
@@ -9,6 +9,28 @@ from typing import Optional
 app = FastAPI()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), 'clipmate_from_xml.db')
+
+# Security: Optional API key authentication
+# Set CLIPMATE_API_KEY environment variable to enable authentication
+# If not set, all requests are allowed (for easy local development)
+API_KEY = os.environ.get('CLIPMATE_API_KEY')
+
+def verify_api_key(x_api_key: Optional[str] = Header(None)):
+    """Verify API key if one is configured"""
+    if API_KEY is None:
+        # No API key configured - allow all requests
+        return True
+    if x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
+    return True
+
+def require_api_key_for_writes(x_api_key: Optional[str] = Header(None)):
+    """Require API key for write operations if configured"""
+    if API_KEY is None:
+        return True
+    if x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="API key required for write operations")
+    return True
 
 class Clip(BaseModel):
     id: int
@@ -114,7 +136,8 @@ def get_clip(clip_id: int):
     return dict(row)
 
 @app.put("/api/clips/{clip_id}")
-def update_clip(clip_id: int, clip: Clip):
+def update_clip(clip_id: int, clip: Clip, _auth: bool = Depends(require_api_key_for_writes)):
+    """Update a clip. Requires API key if CLIPMATE_API_KEY is set."""
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("UPDATE clips SET title = ?, content_text = ? WHERE id = ?", (clip.title, clip.content_text, clip_id))
@@ -129,4 +152,15 @@ async def read_root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Security: Bind to localhost only (not 0.0.0.0) to prevent network exposure
+    # Set CLIPMATE_HOST=0.0.0.0 if you need network access (not recommended)
+    host = os.environ.get('CLIPMATE_HOST', '127.0.0.1')
+    port = int(os.environ.get('CLIPMATE_PORT', '8000'))
+
+    if API_KEY:
+        print(f"API key authentication enabled")
+    else:
+        print(f"WARNING: No API key configured. Set CLIPMATE_API_KEY for authentication.")
+
+    print(f"Starting server on {host}:{port}")
+    uvicorn.run(app, host=host, port=port)
