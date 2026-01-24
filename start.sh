@@ -1,21 +1,30 @@
 #!/bin/bash
 
-# Kill existing server on port 8000 or by name
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+# Kill existing server on port 8000
 echo "Stopping existing server..."
 fuser -k 8000/tcp 2>/dev/null || true
-pkill -f "python3 /root/projects/ParseClipmate/server.py" || true
+pkill -f "server.py" 2>/dev/null || true
+
+# Create virtual environment if it doesn't exist
+if [ ! -d ".venv" ]; then
+    echo "Creating virtual environment..."
+    python3 -m venv .venv
+fi
+
+# Activate virtual environment
+source .venv/bin/activate
 
 # Install dependencies if missing
 if ! python3 -c "import fastapi" &> /dev/null; then
     echo "Installing dependencies..."
-    pip install fastapi uvicorn
+    pip install -r requirements.txt
 fi
-
-# Run parser to ensure DB is up to date
-echo "Running parser..."
-python3 /root/projects/ParseClipmate/main.py
 
 # Start server
 echo "Starting server..."
 echo "Open http://localhost:8000 in your browser"
-python3 /root/projects/ParseClipmate/server.py
+python3 server.py

@@ -3,12 +3,25 @@ Process ClipMate XML export and populate SQLite database
 Pure XML-based approach - no binary file parsing needed
 """
 import os
+import shutil
 import sqlite3
+from datetime import datetime
 from clipmate_xml_parser import ClipMateXMLParser
 
-def create_database(db_path):
-    """Create or recreate the clips database with enhanced schema"""
+def create_database(db_path, backup=True):
+    """Create or recreate the clips database with enhanced schema
+
+    Args:
+        db_path: Path to the database file
+        backup: If True, backup existing database before overwriting (default: True)
+    """
     if os.path.exists(db_path):
+        if backup:
+            # Create backup with timestamp
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_path = f"{db_path}.backup_{timestamp}"
+            shutil.copy2(db_path, backup_path)
+            print(f"Backed up existing database to: {backup_path}")
         os.remove(db_path)
         print(f"Removed existing database: {db_path}")
 
