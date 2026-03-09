@@ -1,1 +1,7 @@
 @/tmp/gitignore
+
+# Gas Town (added by gt)
+.runtime/
+.claude/
+.logs/
+__pycache__/
