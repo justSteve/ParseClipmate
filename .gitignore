@@ -1,1 +1,32 @@
-@/tmp/gitignore
+# Environment
+.env
+
+# Build output
+data/
+dist/
+node_modules/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Claude Code local settings (NEVER commit)
+.claude/settings.local.json
+
+# GT beads runtime (not source — issues.jsonl IS tracked)
+.beads/beads.db
+.beads/beads.db-shm
+.beads/beads.db-wal
+.beads/daemon.lock
+.beads/daemon.log
+.beads/daemon.pid
+.beads/bd.sock
+.beads/.local_version
+.beads/last-touched
+
+# Gas Town (added by gt)
+.runtime/
+.claude/commands/
+.logs/
+parseclipmate.egg-info/
