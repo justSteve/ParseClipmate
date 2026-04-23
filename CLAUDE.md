@@ -30,18 +30,39 @@ Reference the bead ID in your commit messages: `[pc-xxx] description`.
 
 ## What This Is
 
-ParseClipmate is the enterprise clipboard ingestion zgent. It captures, parses, and processes clipboard content for use across the Gas Town enterprise.
+ParseClipmate is the enterprise clipboard ingestion zgent. It captures, parses, and processes clipboard content for use across the Gas City enterprise.
 
-> **Recovery**: Run `gt prime` after compaction, clear, or new session. Full context is injected by `gt prime` at session start.
+<!-- PLACEHOLDER: Steve to review SOI and advisory voice during walkthrough -->
+
+> **Recovery**: Run `bd ready` after compaction, clear, or new session. Use `bd prime` for full context.
 
 ## What Every Claude Instance Must Understand
 
 1. **Beads-first is non-negotiable.** Read the gate at the top of this file. Use `bd` commands. No exceptions.
 2. **Consumer permissions.** Standard zgent access — read enterprise, write own repo. See `.claude/rules/zgent-permissions.md`.
 
+## Beads Issue Tracker
+
+This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
+
+### Quick Reference
+
+```bash
+bd ready              # Find available work
+bd show <id>          # View issue details
+bd update <id> --claim  # Claim work
+bd close <id>         # Complete work
+```
+
+### Rules
+
+- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
+- Run `bd prime` for detailed command reference and session close protocol
+- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
+
 ## Graduation Status
 
-- **Standard artifacts deployed** — beads-first, zgent-permissions, settings.json, .gitattributes ✓
+- **Standard artifacts deployed** — beads-first, zgent-permissions, settings.json, .gitattributes
 
 ## Conventions
 

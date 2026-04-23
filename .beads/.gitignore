@@ -18,3 +18,6 @@
 
 # Documentation for contributors
 !README.md
+
+# Worker context for session startup
+!PRIME.md
