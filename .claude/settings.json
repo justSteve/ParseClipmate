@@ -47,7 +47,12 @@
       "Bash(pip:*)",
       "Bash(find:*)",
       "mcp__fetch__fetch",
-      "mcp__github__*"
+      "mcp__github__*",
+      "Skill(tap-in)",
+      "Skill(handoff)",
+      "Skill(checkpoint)",
+      "Bash(column *)",
+      "Write(.claude/state/**)"
     ],
     "deny": [
       "Bash(cat .env:*)",
