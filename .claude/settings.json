@@ -15,8 +15,6 @@
   "permissions": {
     "allow": [
       "Edit(*)",
-      "Write(*)",
-      "MultiEdit(*)",
       "Read(*)",
       "Glob(*)",
       "Grep(*)",
@@ -65,7 +63,7 @@
       "Skill(handoff)",
       "Skill(checkpoint)",
       "Bash(column *)",
-      "Write(.claude/state/**)"
+      "Edit(.claude/state/**)"
     ],
     "deny": [
       "Bash(cat .env:*)",
